@@ -15,6 +15,7 @@
     packages.x86_64-linux.default = self.packages.x86_64-linux.brightness-libnotify;
     devShells."x86_64-linux".default = pkgs.mkShell {
       packages = with pkgs; [
+        bear
         clang-tools
         clang
         glib.dev
