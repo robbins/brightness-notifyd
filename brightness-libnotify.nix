@@ -1,7 +1,9 @@
 { lib
 , stdenv
-, pkgconfig
+, pkg-config
 , libnotify
+, glib
+, gdk-pixbuf
 }:
 
 stdenv.mkDerivation (finalAttrs: {
@@ -12,14 +14,17 @@ stdenv.mkDerivation (finalAttrs: {
 
   nativeBuildInputs = [
     libnotify.dev
+    glib.dev
+    gdk-pixbuf.dev
   ];
 
   buildInputs = [
     libnotify
+    pkg-config
   ];
 
   buildPhase = ''
-    clang main.c
+    clang main.c $(pkg-config --cflags --libs libnotify)
   '';
 
   installPhase = ''

@@ -16,6 +16,9 @@
     devShells.default = pkgs.mkShell {
       packages = with pkgs; [
         clang-tools
+        glib.dev
+        gdk-pixbuf.dev
+        pkg-config
       ];
     };
   };
