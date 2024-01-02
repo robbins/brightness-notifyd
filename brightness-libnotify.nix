@@ -26,7 +26,7 @@ stdenv.mkDerivation (finalAttrs: {
   ];
 
   buildPhase = ''
-    clang -Wall -Wextra -Wfloat-equal -Wundef -Werror -fverbose-asm -Wint-to-pointer-cast -Wshadow -Wpointer-arith -Wcast-align -Wstrict-prototypes -Wcast-qual -Wmissing-prototypes -Wstrict-overflow=5 -Wwrite-strings -Wconversion --pedantic-errors main.c $(pkg-config --cflags --libs libnotify) $(pkg-config --cflags --libs libsystemd) $(pkg-config --cflags --libs libsystemd-journal) -g -Og -ggdb
+    clang -Wall -Wextra -Wfloat-equal -Wundef -Werror -fverbose-asm -Wint-to-pointer-cast -Wshadow -Wpointer-arith -Wcast-align -Wstrict-prototypes -Wcast-qual -Wmissing-prototypes -Wstrict-overflow=5 -Wwrite-strings -Wconversion --pedantic-errors main.c $(pkg-config --cflags --libs libnotify) $(pkg-config --cflags --libs libsystemd) $(pkg-config --cflags --libs libsystemd-journal)
   '';
 
   installPhase = ''
@@ -34,12 +34,8 @@ stdenv.mkDerivation (finalAttrs: {
     cp a.out $out/bin/brightness-libnotify
   '';
 
-  dontStrip = true;
-
   meta = {
-    description = "";
-    homepage = "";
-    maintainers = with lib.maintainers; [  ];
+    description = "A simple program to send notifications when screen brightness changes";
   };
 })
 
