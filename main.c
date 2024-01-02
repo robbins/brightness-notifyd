@@ -105,8 +105,8 @@ int main(void) {
     exit(EXIT_FAILURE);
   }
 
-  notification_data -> notification = notification;
-  notification_data -> brightness = NULL;
+  notification_data->notification = notification;
+  notification_data->brightness = NULL;
 
   sd_device_monitor_start(monitor, &event_callback, notification_data);
   sd_event *event_loop = sd_device_monitor_get_event(monitor);
