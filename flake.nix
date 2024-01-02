@@ -24,7 +24,6 @@
         libnotify.dev
         systemd.dev
         gdb
-        gdbgui
       ];
     };
   };
