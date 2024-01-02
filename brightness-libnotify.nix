@@ -26,7 +26,7 @@ stdenv.mkDerivation (finalAttrs: {
   ];
 
   buildPhase = ''
-    clang main.c $(pkg-config --cflags --libs libnotify) $(pkg-config --cflags --libs libsystemd) -g -Og -ggdb
+    clang -Wall -Wextra -Wfloat-equal -Wundef -Werror -fverbose-asm -Wint-to-pointer-cast -Wshadow -Wpointer-arith -Wcast-align -Wstrict-prototypes -Wcast-qual -Wmissing-prototypes -Wstrict-overflow=5 -Wwrite-strings -Wconversion --pedantic-errors main.c $(pkg-config --cflags --libs libnotify) $(pkg-config --cflags --libs libsystemd) -g -Og -ggdb
   '';
 
   installPhase = ''
