@@ -1,5 +1,6 @@
 #include "libnotify/notification.h"
 #include "systemd/sd-event.h"
+#include "unistd.h"
 #include <libnotify/notify.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -17,6 +18,9 @@
 
 #define INCLUDE_MATCH !EXCLUDE_MATCH
 #define EXCLUDE_MATCH 0
+
+#define NOCHDIR 0
+#define NOCLOSE 0
 
 #define UNUSED(x) (void)(x)
 
@@ -81,6 +85,10 @@ sd_device_monitor *setup_udev_device_monitor(void) {
 }
 
 int main(void) {
+  if (daemon(NOCHDIR, NOCLOSE)) {
+    perror("daemon:");
+  }
+
   bool init_success = notify_init(APP_NAME);
   if (!init_success) {
     fprintf(stderr, "libnotify initialization failed");
