@@ -22,6 +22,9 @@
         gdk-pixbuf.dev
         pkg-config
         libnotify.dev
+        systemd.dev
+        gdb
+        gdbgui
       ];
     };
   };

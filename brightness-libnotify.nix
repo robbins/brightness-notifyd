@@ -4,6 +4,7 @@
 , libnotify
 , glib
 , gdk-pixbuf
+, systemd
 }:
 
 stdenv.mkDerivation (finalAttrs: {
@@ -16,6 +17,7 @@ stdenv.mkDerivation (finalAttrs: {
     libnotify.dev
     glib.dev
     gdk-pixbuf.dev
+    systemd.dev
   ];
 
   buildInputs = [
@@ -24,13 +26,15 @@ stdenv.mkDerivation (finalAttrs: {
   ];
 
   buildPhase = ''
-    clang main.c $(pkg-config --cflags --libs libnotify)
+    clang main.c $(pkg-config --cflags --libs libnotify) $(pkg-config --cflags --libs libsystemd) -g -Og -ggdb
   '';
 
   installPhase = ''
     mkdir -p $out/bin
     cp a.out $out/bin/brightness-libnotify
   '';
+
+  dontStrip = true;
 
   meta = {
     description = "";
