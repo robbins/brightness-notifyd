@@ -6,15 +6,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <systemd/sd-device.h>
-#include <unistd.h>
 #include <systemd/sd-journal.h>
+#include <unistd.h>
 
 #define APP_NAME "Brightness-Notifyd"
 #define NOTIFICATION_TITLE "Brightness"
 #define NOTIFICATION_TIMEOUT_MS 2000
 #define HINT_TRANSIENT "transient"
 #define HINT_PROGRESS "value"
+#define BACKLIGHT_TITLE "Backlight: "
+#define BACKLIGHT_TITLE_LEN 11
 
+#define PROPERTY_KERNEL "KERNEL"
 #define SUBSYSTEM_BACKLIGHT "backlight"
 #define ATTR_BRIGHTNESS "brightness"
 
@@ -37,6 +40,7 @@ typedef struct brightness_notification {
 char *raw_brightness_to_percent_formatted(const char *raw_brightness);
 int raw_brightness_to_percent(const char *raw_brightness);
 const char *get_raw_brightness(sd_device *backlight_device);
+const char *get_kernel(sd_device *backlight_device);
 int event_callback(sd_device_monitor *m, sd_device *device, void *userdata);
 int raw_brightness_to_percent(const char *raw_brightness);
 sd_device_monitor *setup_udev_device_monitor(void);
@@ -61,24 +65,40 @@ int raw_brightness_to_percent(const char *raw_brightness) {
 const char *get_raw_brightness(sd_device *backlight_device) {
   const char *raw_brightness = NULL;
   if (sd_device_get_sysattr_value(backlight_device, ATTR_BRIGHTNESS, &raw_brightness) < 0) {
-    sd_journal_print(LOG_ERR, "Failed to get sysfs backlight attribute");
+    sd_journal_print(LOG_ERR, "Failed to get sysfs %s attribute", ATTR_BRIGHTNESS);
     return NULL;
   }
   return raw_brightness;
 }
 
+const char *get_kernel(sd_device *backlight_device) {
+  const char *kernel = NULL;
+  if (sd_device_get_sysname(backlight_device, &kernel) < 0) {
+    sd_journal_print(LOG_ERR, "Failed to get sysname");
+    return NULL;
+  }
+  return kernel;
+}
+
 int event_callback(sd_device_monitor *m, sd_device *device, void *userdata) {
   UNUSED(m);
+
   const char *raw_brightness = get_raw_brightness(device);
-  char *brightness_percent = raw_brightness_to_percent_formatted(raw_brightness);
-  if (brightness_percent == NULL) {
+  char *body_brightness_percent = raw_brightness_to_percent_formatted(raw_brightness);
+  if (body_brightness_percent == NULL) {
     return -1;
   }
+
+  const char *kernel = get_kernel(device);
+  char summary[BUFSIZ] = BACKLIGHT_TITLE;
+  strncat(summary, kernel, BUFSIZ - BACKLIGHT_TITLE_LEN - 1);
+
   brightness_notification_data *notification_data = userdata;
-  notify_notification_update(notification_data->notification, "Brightness", brightness_percent, NULL);
+  notify_notification_update(notification_data->notification, summary, body_brightness_percent, NULL);
   notify_notification_set_hint(notification_data->notification, HINT_PROGRESS, g_variant_new_int32(raw_brightness_to_percent(raw_brightness)));
   notify_notification_show(notification_data->notification, NULL);
-  free(brightness_percent);
+
+  free(body_brightness_percent);
   return 0;
 }
 
@@ -107,11 +127,13 @@ NotifyNotification *create_brightness_notification(void) {
 }
 
 brightness_notification_data *create_notification_data(void) {
+  NotifyNotification *notification = create_brightness_notification();
+
   brightness_notification_data *notification_data = malloc(sizeof(brightness_notification_data));
   if (notification_data == NULL) {
     return NULL;
   }
-  NotifyNotification *notification = create_brightness_notification();
+
   notification_data->notification = notification;
   notification_data->brightness = NULL;
   return notification_data;
@@ -152,7 +174,6 @@ int main(int argc, char *argv[]) {
   }
 
   sd_device_monitor_start(monitor, &event_callback, notification_data);
-
   sd_event *event_loop = sd_device_monitor_get_event(monitor);
   sd_event_set_signal_exit(event_loop, TRUE);
   sd_event_loop(event_loop);
